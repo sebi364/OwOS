@@ -1,8 +1,39 @@
-; --------------------------------------------------
-; Our OS uses BIOS (Legacy mode) to boot. BIOS
-; starts loading the OS from 0x7C00, therfore we
-; need to tell nasm to start from this address.
-org 0x7C00  ; hint for nasm to start @ 0x7C00
-bits 16     ; hint for nasm to assemble as 16bit
+org 0x0
+bits 16
 
-nop
+
+%define ENDL 0x0D, 0x0A
+
+
+start:
+    ; print hello world message
+    mov si, msg_hello
+    call puts
+
+.halt:
+    cli
+    hlt
+
+puts:
+    push si
+    push ax
+    push bx
+
+.loop:
+    lodsb               ; loads next character in al
+    or al, al           ; verify if next character is null?
+    jz .done
+
+    mov ah, 0x0E        ; call bios interrupt
+    mov bh, 0           ; set page number to 0
+    int 0x10
+
+    jmp .loop
+
+.done:
+    pop bx
+    pop ax
+    pop si    
+    ret
+
+msg_hello: db 'Hello world from KERNEL!', ENDL, 0
