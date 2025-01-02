@@ -106,12 +106,12 @@ start:
         mov bx, buffer              ; es:bx = buffer
         call disk_read
 
-        ; search for kernel.bin
+        ; search for stage2.bin
         xor bx, bx
         mov di, buffer
 
-    .search_kernel:
-        mov si, file_kernel_bin     ; filename
+    .search_stage2:
+        mov si, file_stage2_bin     ; filename
         mov cx, 11                  ; compare up to 11 chars
         push di
         ; repeat
@@ -120,20 +120,20 @@ start:
         repe cmpsb
         pop di
 
-        je .found_kernel
+        je .found_stage2
 
         ; check if we are through all entries
         add di, 32
         inc bx
         cmp bx,[bdb_dir_entries_count]
-        jl .search_kernel
+        jl .search_stage2
 
-        jmp kernel_not_found_error
+        jmp stage2_not_found_error
     
-    .found_kernel:
+    .found_stage2:
         ; di stil holds the address of the directory
         mov ax, [di + 26]
-        mov [kernel_cluster], ax
+        mov [stage2_cluster], ax
 
         ; load FAT from disk into memory
         mov ax, [bdb_reserved_sectors]
@@ -142,14 +142,14 @@ start:
         mov dl, [ebr_drive_number]
         call disk_read
 
-        ; read kernel and process FAT chain
-        mov bx, KERNEL_LOAD_SEGMENT
+        ; read stage2 and process FAT chain
+        mov bx, STAGE2_LOAD_SEGMENT
         mov es, bx
-        mov bx, KERNEL_LOAD_OFFSET
+        mov bx, STAGE2_LOAD_OFFSET
     
-    .load_kernel_loop:
+    .load_stage2_loop:
         ; read next cluster
-        mov ax, [kernel_cluster]
+        mov ax, [stage2_cluster]
 
         add ax, 31
         mov cl, 1
@@ -159,7 +159,7 @@ start:
         add bx, [bdb_bytes_per_sector]
 
         ; compute location of next cluster
-        mov ax, [kernel_cluster]
+        mov ax, [stage2_cluster]
         mov cx, 3
         mul cx
         mov cx, 2
@@ -183,16 +183,16 @@ start:
         cmp ax, 0x0FF8
         jae .read_finish
 
-        mov [kernel_cluster], ax
-        jmp .load_kernel_loop
+        mov [stage2_cluster], ax
+        jmp .load_stage2_loop
 
     .read_finish:
         mov dl, [ebr_drive_number]
-        mov ax, KERNEL_LOAD_SEGMENT
+        mov ax, STAGE2_LOAD_SEGMENT
         mov ds, ax
         mov es, ax
 
-        jmp KERNEL_LOAD_SEGMENT:KERNEL_LOAD_OFFSET
+        jmp STAGE2_LOAD_SEGMENT:STAGE2_LOAD_OFFSET
 
 ; --------------------------------------------------
 ; print func to print a text to tty
@@ -290,8 +290,8 @@ disk_read:
     cli         ; disable all interrupts
     jmp .halt   ; loop
 
-kernel_not_found_error:
-    mov si, msg_kernel_not_found
+stage2_not_found_error:
+    mov si, msg_stage2_not_found
     call puts
     jmp wait_key_and_reboot
 
@@ -307,15 +307,15 @@ floppy_error:
 
 ; --------------------------------------------------
 ; string followed by an newline character and a NULL
-msg_kernel_not_found: db "No kernel found in root directory!", NEWLINE, 0
-file_kernel_bin: db "KERNEL  BIN", NEWLINE, 0
+msg_stage2_not_found: db "No stage2 found in root directory!", NEWLINE, 0
+file_stage2_bin: db "STAGE2  BIN", NEWLINE, 0
 msg_read_failed: db 'Read from disk failed!', NEWLINE, 0
 msg_loading:            db 'Loading...', NEWLINE, 0
 
 ; misc variables & definitions
-kernel_cluster: db 0
-KERNEL_LOAD_SEGMENT: equ 0x2000
-KERNEL_LOAD_OFFSET: equ 0
+stage2_cluster: db 0
+STAGE2_LOAD_SEGMENT: equ 0x2000
+STAGE2_LOAD_OFFSET: equ 0
 
 ; --------------------------------------------------
 ; In order for our OS to be recognized by
