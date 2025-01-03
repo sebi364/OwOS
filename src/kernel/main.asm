@@ -1,39 +1,20 @@
-org 0x0
 bits 16
+section _ENTRY class=CODE
 
+extern _cstart_
+global entry
 
-%define ENDL 0x0D, 0x0A
+entry:
+    cli
+    mov ax, ds
+    mov ss, ax
+    mov sp, 0
+    mov bp, sp
+    sti
 
+    xor dh, dh
+    push dx
+    call _cstart_
 
-start:
-    ; print hello world message
-    mov si, msg_hello
-    call puts
-
-.halt:
     cli
     hlt
-
-puts:
-    push si
-    push ax
-    push bx
-
-.loop:
-    lodsb               ; loads next character in al
-    or al, al           ; verify if next character is null?
-    jz .done
-
-    mov ah, 0x0E        ; call bios interrupt
-    mov bh, 0           ; set page number to 0
-    int 0x10
-
-    jmp .loop
-
-.done:
-    pop bx
-    pop ax
-    pop si    
-    ret
-
-msg_hello: db 'Hello world from KERNEL!', ENDL, 0
