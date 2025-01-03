@@ -1,2 +1,2 @@
 # OwOS
-A cute OS written from scratch
+How to **not** design an OS 101
