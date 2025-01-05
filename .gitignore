@@ -1,2 +1,4 @@
 /build
 /src/kernel/*.err
+bochs_config
+bx_enh_dbg.ini

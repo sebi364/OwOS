@@ -3,9 +3,7 @@ BUILD_DIR=./build
 
 .PHONY: all floppy_image kernel bootloader clean always
 
-#
-# Floppy IMG
-#
+
 floppy_image: $(BUILD_DIR)/main_floppy.img
 
 $(BUILD_DIR)/main_floppy.img: bootloader kernel
@@ -29,3 +27,9 @@ always:
 
 clean:
 	rm -rf $(BUILD_DIR)/*
+
+debugg: clean floppy_image
+	bochs -q -f bochs_config
+
+run: clean floppy_image
+	qemu-system-i386 -fda build/main_floppy.img --display gtk,zoom-to-fit=on
