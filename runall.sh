@@ -1,4 +1,4 @@
 #!/usr/bin/bash
 make clean
 make
-floating qemu-system-i386 -fda build/main_floppy.img
+qemu-system-i386 -fda build/main_floppy.img --display gtk,zoom-to-fit=on

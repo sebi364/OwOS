@@ -10,8 +10,8 @@ _x86_Video_WriteCharTeletype:
     push bx
 
     mov ah, 0Eh
-    mov al, [bp + 2]
-    mov bh, [bp + 4]
+    mov al, [bp + 4]
+    mov bh, [bp + 6]
 
     int 10h
 
@@ -28,13 +28,15 @@ _x86_Video_WritePixelVideo:
     mov bp, sp
     push bx
 
-    mov ah, 0ch
-    mov bh, 0
-    mov cx, [bp + 4] ; move first argument (pixel x) to dx
-    mov dx, [bp + 6] ; move second argument (pixel y) to cx
-    mov al, [bp + 8] ; move third argument (color) to al
+    ; We can display the pixel using an int, the arguments
+    ; (that we provided in our C program) are stored on the stack.
+    mov ah, 0ch         ; Write Graphics Pixel 
+    mov bh, 0           ;
+    mov cx, [bp + 4]    ; first argument (pixel x)
+    mov dx, [bp + 6]    ; second argument (pixel y)
+    mov al, [bp + 8]    ;  argument (color)
 
-    int 10h     ; call bios interrupt to draw a pixel
+    int 10h             ; call bios interrupt to draw a pixel
 
     ; restore registers
     pop bx
